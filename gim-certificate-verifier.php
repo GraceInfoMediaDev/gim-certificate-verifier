@@ -31,6 +31,9 @@ if ( ! class_exists( 'GIM_Certificate_Verifier' ) ) {
 
             // Register shortcode
             add_shortcode( 'gim_certificate_verifier', array( $this, 'render_certificate_verifier' ) );
+
+            // Inject styles into the page header
+            add_action( 'wp_head', array( $this, 'inject_plugin_styles' ) );
         }
 
         /*
@@ -39,13 +42,18 @@ if ( ! class_exists( 'GIM_Certificate_Verifier' ) ) {
         public function render_certificate_verifier() {
             ob_start();
 
-            // 1. Render the submission form
+            // Wrap everything inside a dedicated class wrapper for clean targetting
+            echo '<div class="cert-verifier-container">';
+            
             $this->render_form();
 
-            // 2. Process submission if it exists
             if ( isset( $_POST['cert_nonce'] ) && wp_verify_nonce( $_POST['cert_nonce'], 'verify_cert_action' ) ) {
+                echo '<div class="cert-response">';
                 $this->process_verification();
+                echo '</div>';
             }
+
+            echo '</div>';
 
             return ob_get_clean();
         }
@@ -79,7 +87,6 @@ if ( ! class_exists( 'GIM_Certificate_Verifier' ) ) {
             
             $target_file_path = $this->cert_dir_path . $file_name;
             $target_file_url  = $this->cert_dir_url . $file_name;
-            echo '<p style="color:red;">Searching for file at: ' . esc_html( $target_file_path ) . '</p>';
             // Directly check if the specific file exists
             if ( file_exists( $target_file_path ) ) {
                 echo '<div class="cert-success">';
@@ -88,6 +95,89 @@ if ( ! class_exists( 'GIM_Certificate_Verifier' ) ) {
             } else {
                 echo '<p class="cert-error">It is not matched in our records.</p>';
             }
+        }
+
+        /**
+         * Injects responsive, modern CSS into the WordPress header.
+         */
+        public function inject_plugin_styles() {
+            ?>
+            <style>
+                .cert-verifier-container {
+                    max-width: 800px;
+                    margin: 2rem auto;
+                    padding: 2rem;
+                    background: #ffffff;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                }
+                .cert-verifier-container form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                .cert-verifier-container label {
+                    font-weight: 600;
+                    color: #333333;
+                    font-size: 1rem;
+                    margin-bottom: 4px;
+                }
+                .cert-verifier-container input[type="text"] {
+                    width: 100%;
+                    padding: 12px;
+                    border: 1px solid #cccccc;
+                    border-radius: 6px;
+                    font-size: 1rem;
+                    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+                    box-sizing: border-box;
+                }
+                .cert-verifier-container input[type="text"]:focus {
+                    border-color: #0073aa;
+                    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+                    outline: none;
+                }
+                .cert-verifier-container input[type="submit"] {
+                    background-color: #0073aa;
+                    color: #ffffff;
+                    border: none;
+                    padding: 12px 20px;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: background-color 0.2s ease;
+                }
+                .cert-verifier-container input[type="submit"]:hover {
+                    background-color: #005177;
+                }
+                .cert-response {
+                    margin-top: 1.5rem;
+                    border-top: 1px solid #eeeeee;
+                    padding-top: 1.5rem;
+                }
+                .cert-error {
+                    background-color: #fff0f0;
+                    border-left: 4px solid #d9381e;
+                    color: #d9381e;
+                    padding: 12px;
+                    border-radius: 0 6px 6px 0;
+                    font-weight: 500;
+                    margin: 0;
+                }
+                .cert-image-wrap {
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    border-radius: 6px;
+                    overflow: hidden;
+                    display: block;
+                }
+                .certimg {
+                    display: block;
+                    width: 100%;
+                    height: auto;
+                }
+            </style>
+            <?php
         }
     }
 
