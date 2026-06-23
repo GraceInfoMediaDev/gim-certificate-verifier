@@ -23,11 +23,11 @@ define( 'GIM_CV_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 if ( ! class_exists( 'GIM_Certificate_Verifier' ) ) {
     class GIM_Certificate_Verifier {
-        private $cert_dir_path;
-        private $cert_dir_url;
+        private string $cert_dir_path;
+        private string $cert_dir_url;
         public function __construct() {
-            $this->cert_dir_path = GIM_CV_PLUGIN_DIR . 'certificates/';
-            $this->cert_dir_url = GIM_CV_PLUGIN_URL . 'certificates/';
+            $this->cert_dir_path = GIM_CV_PLUGIN_DIR . '/your-certificates/';
+            $this->cert_dir_url = GIM_CV_PLUGIN_URL . '/your-certificates/';
 
             // Register shortcode
             add_shortcode( 'gim_certificate_verifier', array( $this, 'render_certificate_verifier' ) );
@@ -50,14 +50,47 @@ if ( ! class_exists( 'GIM_Certificate_Verifier' ) ) {
             return ob_get_clean();
         }
 
-        public function render_form() {
-            // Implementation for rendering the submission form
+        /**
+         * Renders the HTML input form.
+         */
+        private function render_form() {
+            ?>
+            <form id="verifyCert" action="" method="POST">
+                <?php wp_nonce_field( 'verify_cert_action', 'cert_nonce' ); ?>
+                <label for="rollnumber">Enter your roll number:</label>
+                <input type="text" id="rollnumber" name="rollnumber" placeholder="ex. DIC-7861301" required>
+                <input type="submit" value="Submit">
+            </form>
+            <?php
         }
 
-        public function process_verification() {
-            // Implementation for processing the certificate verification
+        /**
+         * Validates input and verifies if the certificate exists.
+         */
+        private function process_verification() {
+            if ( empty( $_POST['rollnumber'] ) ) {
+                echo '<p class="cert-error">Please enter your roll number.</p>';
+                return;
+            }
+
+            // Sanitize the input to prevent XSS/malicious input
+            $roll_number = sanitize_text_field( $_POST['rollnumber'] );
+            $file_name   = $roll_number . '.jpg';
+            
+            $target_file_path = $this->cert_dir_path . $file_name;
+            $target_file_url  = $this->cert_dir_url . $file_name;
+            echo '<p style="color:red;">Searching for file at: ' . esc_html( $target_file_path ) . '</p>';
+            // Directly check if the specific file exists
+            if ( file_exists( $target_file_path ) ) {
+                echo '<div class="cert-success">';
+                echo '<img class="certimg" src="' . esc_url( $target_file_url ) . '" width="100%" height="100%" alt="Verified Certificate">';
+                echo '</div>';
+            } else {
+                echo '<p class="cert-error">It is not matched in our records.</p>';
+            }
         }
     }
+
 
     // Initialize the plugin
     new GIM_Certificate_Verifier();
