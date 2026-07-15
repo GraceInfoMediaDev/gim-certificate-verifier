@@ -2,7 +2,7 @@
 /*
  * Plugin Name:       GIM Certificate Verifier
  * Plugin URI:        https://graceinfomedia.com
- * Description:       Allow schools & colleges to verify issued certificates on their website.
+ * Description:       Allow schools and colleges to verify issued certificates on their website.
  * Version:           1.0.0
  * Requires at least: 5.2
  * Requires PHP:      7.2
